@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EAELL Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #60a5fa;
+      letter-spacing: 1px;
+    }
+
+    .search-box {
+      width: 100%;
+      max-width: 700px;
+      background: #23232a;
+      border-radius: 18px;
+      padding: 36px 32px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 14px 18px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1.1em;
+      background: #18181b;
+      color: #e5e7eb;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    input[type="text"]:focus {
+      outline: 2px solid #60a5fa;
+    }
+
+    button {
+      padding: 14px 28px;
+      background: #60a5fa;
+      color: #18181b;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .results {
+      margin-top: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .result-item {
+      background: #334155;
+      padding: 18px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(96,165,250,0.07);
+      animation: fadeInUp 0.6s forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .result-title {
+      font-weight: 600;
+      color: #fbbf24;
+      font-size: 1.15em;
+      margin-bottom: 6px;
+      text-decoration: none;
+    }
+
+    .result-title:hover {
+      text-decoration: underline;
+    }
+
+    .result-snippet {
+      color: #e5e7eb;
+      font-size: 1em;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .dots-rotate {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 60px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      margin: 0 8px;
+      border-radius: 50%;
+      background: #3b82f6;
+      animation: dot-rotate 1.2s linear infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.4s; }
+    .dot:nth-child(3) { animation-delay: 0.8s; }
+
+    @keyframes dot-rotate {
+      0% { transform: scale(1) translateY(0); opacity: 1; }
+      30% { transform: scale(1.3) translateY(-8px); opacity: 0.7; }
+      60% { transform: scale(1) translateY(0); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    footer {
+      position: fixed;
+      bottom: 12px;
+      width: 100%;
+      text-align: center;
+      font-size: 0.9em;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>EAELL</h1>
+  </header>
+
+  <div class="search-box">
+    <form id="searchForm">
+      <input type="text" name="query" id="query" placeholder="Search EAELL..." required autocomplete="off" />
+      <button type="submit">Search</button>
+    </form>
+    <div class="results" id="results"></div>
+  </div>
+
+  <footer>© 2025 EAELL • Built by James</footer>
+
+  <script>
+    document.getElementById('searchForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const query = document.getElementById('query').value;
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = `
+        <div class="dots-rotate">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      `;
+
+      const response = await fetch('/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `query=${encodeURIComponent(query)}`
+      });
+
+      const data = await response.json();
+      resultsDiv.innerHTML = '';
+
+      if (data.summary) {
+        resultsDiv.innerHTML += `
+          <div style="background:#1e293b;padding:18px;border-radius:10px;color:#60a5fa;font-size:1.1em;">
+            <strong>Summary:</strong> ${data.summary}
+          </div>
+        `;
+      }
+
+      if (data.results && data.results.length > 0) {
+        data.results.forEach((item, idx) => {
+          setTimeout(() => {
+            const title = item.url
+              ? `<a href="${item.url}" target="_blank" class="result-title">${item.title || 'Result'}</a>`
+              : `<div class="result-title">${item.title || 'Result'}</div>`;
+            const snippet = `<div class="result-snippet">${item.snippet || ''}</div>`;
+            const resultHTML = `<div class="result-item">${title}${snippet}</div>`;
+            resultsDiv.innerHTML += resultHTML;
+          }, idx * 80);
+        });
+      } else {
+        resultsDiv.innerHTML += '<div style="text-align:center;">No results found.</div>';
+      }
+    };
+  </script>
+</body>
+</html>
