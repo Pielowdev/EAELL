@@ -1,94 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>EAELL Search by R33</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #121212;
-            color: #eee;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #4dd0e1;
-        }
-        input[type="text"] {
-            width: 60%;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            background: #4dd0e1;
-            color: #121212;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #summy-ai {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 6px;
-            background: #1e1e1e;
-            /* glowing effect */
-            box-shadow: 0 0 15px #ffca28, 0 0 30px #ffca28;
-            animation: pulseGlow 2s infinite alternate;
-        }
-        #summy-ai h2 {
-            color: #ffca28;
-            text-shadow: 0 0 10px #ffca28, 0 0 20px #ffca28;
-        }
-        @keyframes pulseGlow {
-            from { box-shadow: 0 0 10px #ffca28, 0 0 20px #ffca28; }
-            to   { box-shadow: 0 0 20px #ffca28, 0 0 40px #ffca28; }
-        }
-        #results {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 6px;
-            background: #1e1e1e;
-        }
-        a {
-            color: #90caf9;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 0.9em;
-            color: #777;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>EAELL Search by R33</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #4dd0e1;
+    }
+    input[type="text"] {
+      width: 60%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #4dd0e1;
+      color: #121212;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    /* Summy AI block */
+    #summy-ai {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 6px;
+      background: #1e1e1e;
+      overflow: hidden;
+      max-height: 80px; /* collapsed height */
+      transition: max-height 0.8s ease, box-shadow 0.8s ease;
+      box-shadow: 0 0 15px #ffca28, 0 0 30px #ffca28;
+      animation: pulseGlow 2s infinite alternate;
+    }
+    #summy-ai.expanded {
+      max-height: 500px; /* expands when summary arrives */
+    }
+    #summy-ai h2 {
+      color: #ffca28;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* Glowing brain emoji */
+    .glow-brain {
+      font-size: 1.5em;
+      text-shadow: 0 0 10px #ffca28, 0 0 20px #ffca28, 0 0 30px #ffca28;
+      animation: pulseBrain 1.5s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 10px #ffca28, 0 0 20px #ffca28; }
+      to   { box-shadow: 0 0 20px #ffca28, 0 0 40px #ffca28; }
+    }
+    @keyframes pulseBrain {
+      from { transform: scale(1); }
+      to   { transform: scale(1.2); }
+    }
+    #results {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 6px;
+      background: #1e1e1e;
+    }
+    a {
+      color: #90caf9;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.9em;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
-<h1>EAELL Search</h1>
-<form id="search-form">
+  <h1>EAELL Search</h1>
+  <form id="search-form">
     <input type="text" id="query" placeholder="Search..." required>
     <button type="submit">Search</button>
-</form>
+  </form>
 
-<!-- 🧠 Summy AI block now ABOVE results -->
-<div id="summy-ai" style="display:none;">
-    <h2>🧠 Summy AI says:</h2>
+  <!-- 🧠 Summy AI block -->
+  <div id="summy-ai" style="display:none;">
+    <h2><span class="glow-brain">🧠</span> Summy AI says:</h2>
     <p id="summary-text">Working on your digest...</p>
     <small id="summary-source"></small>
-</div>
+  </div>
 
-<div id="results"></div>
+  <div id="results"></div>
 
-<footer>
+  <footer>
     <p>EAELL by <strong>R33</strong></p>
-</footer>
+  </footer>
 
-<script>
+  <script>
+    // Detect backend
+    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const BACKEND = isLocal
+      ? 'http://localhost:3000'
+      : 'https://eaell-backend.onrender.com'; // replace with your deployed backend URL
+
     const form = document.getElementById('search-form');
     const resultsDiv = document.getElementById('results');
     const summyDiv = document.getElementById('summy-ai');
@@ -96,43 +120,45 @@
     const summarySource = document.getElementById('summary-source');
 
     form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const query = document.getElementById('query').value.trim();
-        if (!query) return;
+      e.preventDefault();
+      const query = document.getElementById('query').value.trim();
+      if (!query) return;
 
-        resultsDiv.innerHTML = "<p>Loading results...</p>";
-        summyDiv.style.display = "block";
-        summaryText.innerText = "Working on your digest...";
-        summarySource.innerText = "";
+      resultsDiv.innerHTML = "<p>Loading results...</p>";
+      summyDiv.style.display = "block";
+      summyDiv.classList.remove("expanded");
+      summaryText.innerText = "Working on your digest...";
+      summarySource.innerText = "";
 
-        // 1. Get Exa results immediately
-        const res = await fetch('/search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ query })
-        });
-        const data = await res.json();
+      // 1. Get Exa results immediately
+      const res = await fetch(`${BACKEND}/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ query })
+      });
+      const data = await res.json();
 
-        resultsDiv.innerHTML = data.results.map(r => `
+      resultsDiv.innerHTML = data.results.map(r => `
         <p>
           <a href="${r.url}" target="_blank">${r.title || 'Untitled'}</a><br>
           ${r.snippet || ''}
         </p>
       `).join('');
 
-        // 2. Poll for Summy AI summary
-        const poll = setInterval(async () => {
-            const sumRes = await fetch('/summary?q=' + encodeURIComponent(query));
-            const sumData = await sumRes.json();
-            if (sumData.summy) {
-                summaryText.innerText = sumData.summy;
-                if (sumData.sourceTitle) {
-                    summarySource.innerText = "Source: Wikipedia (" + sumData.sourceTitle + ")";
-                }
-                clearInterval(poll);
-            }
-        }, 3000); // check every 3s
+      // 2. Poll for Summy AI summary
+      const poll = setInterval(async () => {
+        const sumRes = await fetch(`${BACKEND}/summary?q=` + encodeURIComponent(query));
+        const sumData = await sumRes.json();
+        if (sumData.summy) {
+          summaryText.innerText = sumData.summy;
+          if (sumData.sourceTitle) {
+            summarySource.innerText = "Source: Wikipedia (" + sumData.sourceTitle + ")";
+          }
+          summyDiv.classList.add("expanded"); // expand when ready
+          clearInterval(poll);
+        }
+      }, 3000);
     });
-</script>
+  </script>
 </body>
 </html>
