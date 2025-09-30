@@ -1,2 +1,2 @@
 # EAELL
-Ai
+(Efficient A.I Explorer Learning Language)
